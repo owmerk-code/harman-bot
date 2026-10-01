@@ -1,0 +1,11 @@
+# Sifreler ve yerel dosyalar GitHub'a GITMEZ
+.env
+.venv/
+data/
+logs/
+tools/
+arsiv_arena/
+__pycache__/
+*.pyc
+.pytest_cache/
+.pytest-tmp/

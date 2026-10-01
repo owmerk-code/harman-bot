@@ -1,0 +1,76 @@
+{
+  "protocol_id": "harman_v1",
+  "created_utc": "2026-10-02",
+  "owner_decision": "Proje sahibi 1-2 Ekim 2026: hedef 'AI ile pasif gelir: karli bir trader ne yapiyorsa onu bot/AI yapsin'. Arena (16 gun, 33 hesap) hicbir hesabin BTC-tut'u gecemedigini gosterdi; PC'de Docker 7/24 surdurulemedi. Son deneme olarak secenek A: OKX kopya trader'larinin harmanlanmasi, KAGIT PARA, 6 hafta.",
+  "evidence_before_start": "OKX acik API, 1 Ekim: 111 aktif liderin 40.940 kapanmis islemi; 1x ve %0,15 maliyetten sonra ortanca +%0,33/islem, %60 kazanan; acik pozisyonlar dahil edilince kesilmis ortalama +%0,69 -> +%0,63. Short islemler yukselis doneminde de %59 kazandi. ZAYIF YANLAR: yalniz ~3 ay veri (yukselis donemi), hayatta kalma yanliligi olculemiyor, avantaj BTC/ETH/SOL'de kucuk (+%0,07).",
+  "rules": {
+    "vetting": {
+      "MIN_LEAD_DAYS": 180,
+      "MIN_TRADES": 30,
+      "MAX_MEDIAN_LEVER": 20.0,
+      "MAX_HIGH_LEVER_SHARE": 0.1,
+      "HIGH_LEVER": 50.0,
+      "MIN_MEDIAN_HOLD_H": 1.0,
+      "MIN_WIN_RATE": 0.52,
+      "MAX_DEEP_LOSER_SHARE": 0.25,
+      "ACTIVE_DAYS": 14,
+      "COST": 0.0015,
+      "TOP_N": 20,
+      "every_days": 7,
+      "MAX_HIDDEN_SHARE": 0.2
+    },
+    "signal": {
+      "FRESH_HOURS": 24,
+      "MIN_BACKERS": 3,
+      "MAX_OPPOSITE": 1,
+      "EXIT_MIN_HOLDERS": 2,
+      "min_usd_volume_24h": 100000000
+    },
+    "risk": {
+      "CAPITAL": 2000.0,
+      "RISK_PCT": 0.01,
+      "MAX_POS_NOTIONAL": 0.5,
+      "MAX_GROSS": 2.0,
+      "MAX_POSITIONS": 5,
+      "MAX_OPEN_RISK": 0.05,
+      "DAY_LOSS": 0.03,
+      "MAX_DRAWDOWN": 0.15,
+      "FEE": 0.0005,
+      "SLIP": 0.0005,
+      "STOP_ATR_MULT": 2.0,
+      "STOP_MIN": 0.015,
+      "STOP_MAX": 0.08,
+      "TP_R": 2.0,
+      "MAX_HOLD_H": 72,
+      "SEVERE_EXTRA": 0.002
+    }
+  },
+  "twin_experiment": "Iki defter: 'kural' (yalniz kurallar) ve 'ai' (kurallar + Opus 5.5/GPT-6.1 Sol trader vetosu + Sonnet 5.5 haber kontrolu ve erken cikis). AI yalniz riski AZALTABILIR; AI cevap vermezse 'ai' defteri yeni islem acmaz.",
+  "ai_models": {
+    "analist": "claude-opus-5-5",
+    "ikinci_gorus": "gpt-6.1-sol (Codex 0.160.0 sabit)",
+    "gunluk": "claude-sonnet-5-5",
+    "yedekler": "fable-5-1, sonnet/opus"
+  },
+  "decision_after_6_weeks": {
+    "date": "2026-11-13",
+    "GREEN_small_real_money_owner_decision": [
+      "en az bir defterde sert maliyetle getiri > 0",
+      "o defterde en buyuk dusus <= %10",
+      "o defterde en az 20 kapanmis islem",
+      "getiri >= BTC-tut getirisinin yarisi (BTC eksi ise BTC'den iyi)"
+    ],
+    "YELLOW_extend_4_weeks_once": "getiri > 0 ama 20 islemden az",
+    "RED_stop": "diger her durum",
+    "ai_verdict": "'ai' defteri 'kural' defterinden iyi degilse AI cikarilir (yalniz kural defteri devam eder)",
+    "note": "Bu olcutler sonuc GORULMEDEN yazildi; 6 haftada gevsetilmez. 6 hafta istatistiksel kanit degildir: amac calisma duzenini ve kabaca yonu gormek; gercek para kararini sahibi verir, kucuk tutarla."
+  },
+  "forbidden": [
+    "gercek emir",
+    "kaldirac > 2x toplam",
+    "sonuc gorulduktan sonra kural degisikligi (yeni surum = yeni deney)"
+  ],
+  "corrections": [
+    "2 Ekim 2026, HIC ISLEM YAPILMADAN once (ilk gun, 0 islem, sonuc yok): secilen trader'larin acik pozisyonlarinin buyuk kismi GIZLI cikti (kural listesi 632'de 297, ai listesi 317'de 223). Goremedigimiz pozisyonu kopyalayamayiz; eleme kurallarina 'acik pozisyonlarin en fazla %20'si gizli' sarti eklendi ve eleme yeniden yapildi. Sinyal, risk ve karar olcutleri DEGISMEDI. Ayni gun proje bagimsiz HARMAN klasorune/deposuna tasindi (altyapi)."
+  ]
+}
