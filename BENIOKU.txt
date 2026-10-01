@@ -1,0 +1,2 @@
+HARMAN veri yedegi. Geri yuklemek icin: scripts\yedekle.py --geri-al
+Bu dalda kod yoktur; kod 'main' dalindadir. Sifreler (.env) burada YOKTUR.
