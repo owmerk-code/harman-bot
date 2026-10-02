@@ -71,7 +71,7 @@ def refresh_news(store: Store, now_ms: int) -> list[dict[str, Any]]:
                 if now_ms - ev["ms"] <= 24 * 3_600_000:
                     items.setdefault(ev["id"], ev)
         except Exception as exc:
-            log(f"haber kaynagi {name}: {type(exc).__name__}")
+            log(f"haber kaynagi {name}: {type(exc).__name__}: {str(exc)[:150]}")
     fresh = sorted((i for i in items.values() if now_ms - i["ms"] <= 24 * 3_600_000), key=lambda i: -i["ms"])[:200]
     store.put("news", fresh)
     return fresh
@@ -100,7 +100,7 @@ def vet(store: Store, okx: Okx, ai: Any, now_ms: int) -> None:
         try:
             verdicts.append(vetting.evaluate(t, okx.history(t["uniqueCode"]), okx.positions(t["uniqueCode"]), now_ms=now_ms))
         except Exception as exc:
-            log(f"eleme {t.get('uniqueCode')}: {type(exc).__name__}")
+            log(f"eleme {t.get('uniqueCode')}: {type(exc).__name__}: {str(exc)[:150]}")
     chosen = vetting.select(verdicts)
     rule_codes = [v.code for v in chosen]
     rows = [{"kod": v.code, "isim": v.nick, **v.stats} for v in chosen]
@@ -124,7 +124,7 @@ def observe(store: Store, okx: Okx, codes: list[str], now_ms: int) -> list[dict[
         try:
             positions = okx.positions(code)
         except Exception as exc:
-            log(f"pozisyon {code}: {type(exc).__name__}")
+            log(f"pozisyon {code}: {type(exc).__name__}: {str(exc)[:150]}")
             continue
         for p in positions:  # tek bozuk satir o trader'in butun pozisyonlarini dusurmesin
             try:
@@ -151,7 +151,7 @@ def run_ledger(name: str, store: Store, okx: Okx, ai: Any, rows: list[dict[str, 
         try:
             hit = led.check_stops(pos, okx.candles(pos["inst"], "15m", 100))
         except Exception as exc:
-            log(f"{name} mum {pos['inst']}: {type(exc).__name__}")
+            log(f"{name} mum {pos['inst']}: {type(exc).__name__}: {str(exc)[:150]}")
             hit = None
         if hit:
             px, ts, why = hit
