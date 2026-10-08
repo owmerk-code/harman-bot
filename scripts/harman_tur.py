@@ -230,6 +230,9 @@ def facts(store: Store, prices: dict[str, float], now_ms: int) -> dict[str, Any]
                      "bugun_kapanan": [f"{p['inst'].split('-')[0]} {p['exit_reason']} {p['pnl']:+.2f}$" for p in today],
                      "acik": [f"{p['inst'].split('-')[0]} {'long' if p['side'] > 0 else 'short'}" for p in store.open_positions(name)],
                      "durdu": bool(store.get(f"{name}:halted"))}
+        if out["btc_tut_getiri_pct"] is not None:  # kıyası AI'a bırakma: maliyet sonrası getiri vs BTC tut
+            gap = round(out[name]["sert_maliyet_getiri_pct"] - out["btc_tut_getiri_pct"], 2)
+            out[name]["btc_kiyas"] = f"BTC tutmaktan {'IYI' if gap > 0 else 'KOTU'} ({gap:+} puan, maliyet sonrasi)"
     out["takip_edilen_trader"] = {"kural": len(store.get("traders:kural", [])), "ai": len(store.get("traders:ai", []))}
     errs = [r["text"] for r in store.db.execute("SELECT text FROM events WHERE kind='ai_hata' AND ts_ms>=?", (day0,))]
     out["ai_baglanti_hatasi_24s"] = len(errs)
@@ -252,6 +255,7 @@ def report(store: Store, ai: Any, prices: dict[str, float], now_ms: int, *, send
     f = facts(store, prices, now_ms)
     task = ("Sahibine (teknik olmayan biri) gunluk KISA Turkce rapor yaz: iki botun (kurallı ve AI destekli) durumu, "
             "BTC'yi sadece tutmakla kiyas, bugun ne oldu. Sayi uydurma, yalniz verilenleri kullan. 6-8 satir. "
+            "BTC kiyasini KENDIN hesaplama, her botun btc_kiyas alanini aynen kullan. "
             "ai_baglanti_hatasi_24s sifirdan buyukse son satirda 'AI'lara ulasilamadi, Claude/Codex girisini kontrol et' de.")
     body = ai.write("sonnet", task, f) or template(f)
     if datetime.fromtimestamp(now_ms / 1000, tz=ISTANBUL).weekday() == 6:
