@@ -13,6 +13,9 @@ import shutil
 import subprocess
 import tempfile
 import time
+
+# pythonw (konsolsuz) altinda claude/codex her cagride bos pencere acmasin.
+_PENCERE_YOK = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -134,7 +137,8 @@ class CliClient:
                        "--ignore-user-config", "--ignore-rules", *disabled, "--json", "-C", tmp, "-m", self.m.model, "-"]
             try:
                 proc = self._run(cmd, input=message, capture_output=True, text=True, encoding="utf-8",
-                                 errors="replace", timeout=self.timeout, env=env, cwd=tmp, check=False)
+                                 errors="replace", timeout=self.timeout, env=env, cwd=tmp, check=False,
+                                 creationflags=_PENCERE_YOK)
             except subprocess.TimeoutExpired as exc:
                 raise CallError("zaman asimi") from exc
             except OSError as exc:

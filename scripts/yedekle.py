@@ -29,7 +29,8 @@ EXTRA = ROOT / "arsiv_arena"   # eski arena arşivi (bir kez yüklenir, sonra de
 
 def git(*args: str, cwd: Path = WORK, check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True, encoding="utf-8",
-                          errors="replace", check=check)
+                          errors="replace", check=check,
+                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
 
 def remote_url() -> str:
