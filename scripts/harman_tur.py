@@ -7,6 +7,9 @@ Kullanım:
 
 İki kağıt defter yan yana (ikiz deney): 'kural' (yalnız kurallar) ve 'ai' (kurallar + AI vetosu/haber/erken çıkış).
 Böylece AI'ın gerçekten katkı yapıp yapmadığı ölçülür. Protokol: research/harman_v1_protocol.json
+
+18 Ekim 2026: sahibinin Claude aboneliği bitti -> AI kolu KAPATILDI (AI_KOLU_KAPALI=True). 'ai' defteri 16 Ekim'deki
+sonucuyla (-%2,96) donduruldu; yalnız 'kural' defteri işlem yapar. Ayrıntı: protokoldeki 18 Ekim tutanağı.
 """
 from __future__ import annotations
 
@@ -36,7 +39,9 @@ from harman import vetting  # noqa: E402
 from harman.config import DB, LOGS as LOG_DIR  # noqa: E402
 LOCK = ROOT / "data" / "tur.lock"
 ISTANBUL = timezone(timedelta(hours=3))
-LEDGERS = ("kural", "ai")
+LEDGERS = ("kural", "ai")            # ikisi de raporda görünür; 'ai' 16 Ekim'den beri donmuş durumda
+AI_KOLU_KAPALI = True                # 18 Ekim 2026: Claude aboneliği bitti; AI kolu kapatıldı (protokol tutanağı)
+TRADE_LEDGERS = ("kural",) if AI_KOLU_KAPALI else LEDGERS
 MIN_USD_VOLUME = 100_000_000
 VET_EVERY_DAYS = 7
 FULL_SNAPSHOT_HOURS = 6
@@ -104,11 +109,15 @@ def vet(store: Store, okx: Okx, ai: Any, now_ms: int) -> None:
     chosen = vetting.select(verdicts)
     rule_codes = [v.code for v in chosen]
     rows = [{"kod": v.code, "isim": v.nick, **v.stats} for v in chosen]
-    rejected, notes = ai.veto_traders(rows) if rows else (set(), [])
+    if AI_KOLU_KAPALI:
+        rejected, notes = set(), ["AI kolu kapali: veto yapilmadi"]
+    else:
+        rejected, notes = ai.veto_traders(rows) if rows else (set(), [])
     ai_codes = [c for c in rule_codes if c not in rejected]
     store.put("all_active_codes", [str(t["uniqueCode"]) for t in traders])
     store.put("traders:kural", rule_codes)
-    store.put("traders:ai", ai_codes)
+    if not AI_KOLU_KAPALI:
+        store.put("traders:ai", ai_codes)  # kapaliyken son liste dokunulmadan kayıt olarak kalır
     store.put("traders:info", {v.code: {"isim": v.nick, **v.stats} for v in chosen})
     store.put("last_vet_ms", now_ms)
     summary = (f"eleme: {len(traders)} trader, {len(verdicts)} incelendi, {len(chosen)} kurali gecti, "
@@ -215,7 +224,8 @@ def facts(store: Store, prices: dict[str, float], now_ms: int) -> dict[str, Any]
     out: dict[str, Any] = {"gun": int((now_ms - start_ms) / 8.64e7) + 1,
                            "btc_tut_getiri_pct": round((btc / btc0 - 1) * 100, 2) if btc0 and btc else None,
                            "bugun_calisan_tur": len([t for t in store.get("runs", []) if t >= now_ms - 8.64e7]),
-                           "beklenen_tur": 96}
+                           "beklenen_tur": 96,
+                           "ai_kolu_kapali": AI_KOLU_KAPALI}
     day0 = now_ms - 8.64e7
     for name in LEDGERS:
         led = Ledger(name, store)
@@ -244,21 +254,28 @@ def template(f: dict[str, Any]) -> str:
     lines = [f"Gün {f['gun']} | BTC sadece tutulsaydı: {f['btc_tut_getiri_pct']}%"]
     for name, title in (("kural", "Kurallı bot"), ("ai", "AI destekli bot")):
         d = f[name]
-        lines.append(f"{title}: {d['ozsermaye']} $ ({d['getiri_pct']:+}%), {d['kapanan_islem']} işlem, açık: {', '.join(d['acik']) or 'yok'}")
+        kapali = " — 16 Ekim'de kapandı (Claude aboneliği bitti)" if name == "ai" and f.get("ai_kolu_kapali") else ""
+        lines.append(f"{title}: {d['ozsermaye']} $ ({d['getiri_pct']:+}%), {d['kapanan_islem']} işlem, "
+                     f"açık: {', '.join(d['acik']) or 'yok'}{kapali}")
     lines.append(f"Bugün çalışan tur: {f['bugun_calisan_tur']}/{f['beklenen_tur']}")
-    if f.get("ai_baglanti_hatasi_24s"):
+    if f.get("ai_kolu_kapali"):
+        lines.append("AI tarafı durduruldu: kurallı bot 13 Kasım kararına kadar tek başına devam ediyor.")
+    elif f.get("ai_baglanti_hatasi_24s"):
         lines.append(f"⚠️ AI'lara {f['ai_baglanti_hatasi_24s']} kez ulaşılamadı (Claude/Codex girişini kontrol et)")
     return "\n".join(lines)
 
 
 def report(store: Store, ai: Any, prices: dict[str, float], now_ms: int, *, send: bool) -> str:
     f = facts(store, prices, now_ms)
-    task = ("Sahibine (teknik olmayan biri) gunluk KISA Turkce rapor yaz: iki botun (kurallı ve AI destekli) durumu, "
-            "BTC'yi sadece tutmakla kiyas, bugun ne oldu. Sayi uydurma, yalniz verilenleri kullan. 6-8 satir. "
-            "BTC kiyasini KENDIN hesaplama, her botun btc_kiyas alanini aynen kullan. "
-            "ai_baglanti_hatasi_24s sifirdan buyukse son satirda 'AI'lara ulasilamadi, Claude/Codex girisini kontrol et' de.")
-    body = ai.write("sonnet", task, f) or template(f)
-    if datetime.fromtimestamp(now_ms / 1000, tz=ISTANBUL).weekday() == 6:
+    if AI_KOLU_KAPALI:
+        body = template(f)  # AI yok: düz şablon (sayılar raporun içinde)
+    else:
+        task = ("Sahibine (teknik olmayan biri) gunluk KISA Turkce rapor yaz: iki botun (kurallı ve AI destekli) durumu, "
+                "BTC'yi sadece tutmakla kiyas, bugun ne oldu. Sayi uydurma, yalniz verilenleri kullan. 6-8 satir. "
+                "BTC kiyasini KENDIN hesaplama, her botun btc_kiyas alanini aynen kullan. "
+                "ai_baglanti_hatasi_24s sifirdan buyukse son satirda 'AI'lara ulasilamadi, Claude/Codex girisini kontrol et' de.")
+        body = ai.write("sonnet", task, f) or template(f)
+    if not AI_KOLU_KAPALI and datetime.fromtimestamp(now_ms / 1000, tz=ISTANBUL).weekday() == 6:
         weekly = ai.write("opus", "Haftalik kisa analiz yaz: hangi bot neden iyi/kotu gitti, AI katki yapti mi, "
                                   "dikkat edilecek ne var. Kural degistirmeyi ONERME (deney sabit). 5 satir.", f, 900)
         if weekly:
@@ -321,8 +338,8 @@ def main(argv: list[str] | None = None) -> int:
             others = [c for c in store.get("all_active_codes", []) if c not in codes]
             observe(store, okx, others, now_ms)  # hayatta kalma yanlılığına karşı: herkesin kaydı bizde
             store.put("last_full_snapshot_ms", now_ms)
-        news = refresh_news(store, now_ms)
-        for name in LEDGERS:
+        news = [] if AI_KOLU_KAPALI else refresh_news(store, now_ms)  # haber taraması yalnız AI koluna hizmet ediyordu
+        for name in TRADE_LEDGERS:
             run_ledger(name, store, okx, ai, rows, prices, universe, news, now_ms)
         runs = [t for t in store.get("runs", []) if t >= now_ms - 3 * 8.64e7] + [now_ms]
         store.put("runs", runs)
