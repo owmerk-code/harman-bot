@@ -53,6 +53,13 @@ Zamanlanmış görev kontrolü: `Get-ScheduledTaskInfo -TaskName "HARMAN Bot"`.
   "desteklenmiyor" der — önce SÜRÜMÜ kontrol et, sağlayıcıyı suçlama.
 - OKX kopya-trade API'si yalnız ~3 ay geçmiş verir; bazı trader'lar pozisyon gizler (boş instId); trader silinebilir
   ("60004 Trader doesn't exist") — bu hayatta kalma yanlılığı kaydıdır, `snapshots` tablosu herkesi 6 saatte bir kaydeder.
+- Risk kuralları ölçüldü (18 Ekim 2026, 19 işlem): bağlayıcı olan TEK kural "tek pozisyon %50 tutar sınırı" oldu (19 işlemin
+  15'i takıldı) — bu yüzden işlem başına risk hedeflenen %1 (20 $) yerine ortalama %0,83 (16,6 $) kaldı. Diğerleri hiç
+  zorlanmadı: en fazla 2 açık pozisyon (sınır 5), en yüksek toplam tutar 2.037 $ (sınır 4.000 $), en yüksek açık risk 38,7 $
+  (sınır 100 $), günlük/zirve frenleri hiç tetiklenmedi. İşlem sayısını kısıtlayan risk kuralları değil, sinyal azlığıydı
+  (bot zamanın %23'ünde pozisyonsuzdu). Ders: "risk yüzdesini artırmak" tek başına bir şey değiştirmez, kesen tutar sınırıdır;
+  seviye yükseltmek istiyorsan tutar sınırı yükseltilir — ama bu 13 Kasım sonrası YENİ sürüm/deney konusudur, mevcut deney
+  sonuç görüldükten sonra değiştirilmez.
 - Testler: `.venv\Scripts\python.exe -m pytest -q` (pytest.ini basetemp=.pytest-tmp gerekli, yoksa izin hatası).
 
 ## Geçmiş (bağlam)
