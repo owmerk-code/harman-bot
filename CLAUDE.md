@@ -48,6 +48,10 @@ Ayrıntı için `data/harman.db` (tablolar: positions, equity, events, kv, snaps
 Zamanlanmış görev kontrolü: `Get-ScheduledTaskInfo -TaskName "HARMAN Bot"`.
 
 ## Bilinen dersler
+- Sunucu seçeneği (20 Ekim 2026): sahibi araştırmayı istedi ama şimdilik PC'de devam diyor. PC kapalı olunca turlar
+  kaçıyor (17/19 Ekim'de ~10 saat). Adaylar: Oracle Always Free (0 €, kredi kartı ister, kapasite dolu olabilir),
+  Contabo Core VPS 4 (~5,50 €/ay, 4 vCPU/8GB), Hetzner (~4-6 €, kapasite bazen dolu). Avrupa lokasyonu şart (ABD IP'si
+  OKX riski). Geçiş planı: GitHub yedeğinden DB geri yükleme (yedekle.py --geri-al) + cron 15 dk + PC görevini kapama.
 - AI CLI'ları (Claude Code, Codex) abonelikle çalışır; bu PC'deki girişleri kullanır. Sahibi çıkış yaparsa bozulur.
   GPT-6.1 Sol yeni Codex ister: sürüm `tools/codex-0.160.0` (git'te yok; kur.ps1 kurar). Yeni model çıkınca eski CLI
   "desteklenmiyor" der — önce SÜRÜMÜ kontrol et, sağlayıcıyı suçlama.
