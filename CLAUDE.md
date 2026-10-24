@@ -40,6 +40,17 @@ coinde aynı yöne girerse sanal işlem açar. Gerçek emir YOK. Docker yok, tek
 - Düzeltme (işlem yokken): seçilenlerin pozisyonlarının çoğu GİZLİYDİ -> `MAX_HIDDEN_SHARE 0.20` eklendi.
 - 17 Ekim 05:28-15:24 PC kapalıydı (10 saat): o aralıkta tur yok, veri boşluğu normaldir, hata değil.
 
+## Durum (25 Ekim 2026)
+- Gün 24. Başlangıç 1 Ekim, BTC 84.571 → 25 Ekim ~80.400 (−%5,0). `kural`: **2.100 $ (+%5,0)**, 25 kapanmış işlem,
+  12 kazanç (%48), net +72,96; açık BTC long + ETH long. Max düşüş %5,5 (sınır %10). `ai` donuk: 1.940,82 $ (−%2,96).
+- Eleme 23 Ekim: 241 trader tarandı, 136 incelendi, **16 kuralı geçti** (önceki 19; AI kolu kapalı, veto yok).
+- Yedek düzeltildi (25 Ekim): DB 103 MB ile GitHub 100 MB sınırını aşınca yedek 23-24 Ekim'de 24 tur başarısız;
+  `yedekle.py` artık gzip'li gönderiyor (103→28 MB). Ayrıntı protokol `corrections` listesinde.
+- **Sahibinin planı (25 Ekim'de söyledi)**: deney 1 ayı tamamlar → 1 Kasım ara bakış, resmî karar **13 Kasım** protokol
+  ölçütleriyle. Yeşil çıkarsa sıra: (1) ÖNCE sunucu — PC kapalıyken gerçek parada stop uygulanamaz, (2) küçük sabit
+  gerçek para (200-500 $ bandı, sahibinin kararı), kurallara dokunmadan 1 ay, (3) sonuç iyi ise ölçekleme. AI kolu
+  abonelik bitene dek kapalı kalır.
+
 ## Durum raporu nasıl çıkarılır
 ```powershell
 .venv\Scripts\python.exe scripts\harman_tur.py --kuru      # rapor metni (göndermeden)
@@ -64,6 +75,10 @@ Zamanlanmış görev kontrolü: `Get-ScheduledTaskInfo -TaskName "HARMAN Bot"`.
   (bot zamanın %23'ünde pozisyonsuzdu). Ders: "risk yüzdesini artırmak" tek başına bir şey değiştirmez, kesen tutar sınırıdır;
   seviye yükseltmek istiyorsan tutar sınırı yükseltilir — ama bu 13 Kasım sonrası YENİ sürüm/deney konusudur, mevcut deney
   sonuç görüldükten sonra değiştirilmez.
+- Yedek boyutu sınırı (24-25 Ekim): DB 100 MB'ı aşınca GitHub push'u reddetti (tek dosya 100 MB sınırı; 24 başarısız
+  deneme; veri yerelde sağlaktı, GitHub yedeği 22 Ekim'de dondu). Çözüm: yedek artık kopyada VACUUM + gzip
+  (`harman.db.gz`, 103→28 MB); `--geri-al` iki biçimi de okur, yüklemeden önce `PRAGMA quick_check` doğrular.
+  Canlı DB'de VACUUM yapılmaz (bot çakışır; kopyada yapılır). DB ~4 MB/gün büyüyor (snapshots); gzip yıllarca yeterli.
 - Testler: `.venv\Scripts\python.exe -m pytest -q` (pytest.ini basetemp=.pytest-tmp gerekli, yoksa izin hatası).
 
 ## Geçmiş (bağlam)
