@@ -1,2 +1,3 @@
-HARMAN veri yedegi. Geri yuklemek icin: scripts\yedekle.py --geri-al
+HARMAN veri yedegi. Icerik: harman.db.gz (sikistirilmis SQLite veritabani).
+Geri yuklemek icin: scripts\yedekle.py --geri-al
 Bu dalda kod yoktur; kod 'main' dalindadir. Sifreler (.env) burada YOKTUR.
